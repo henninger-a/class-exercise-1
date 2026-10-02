@@ -9,6 +9,11 @@ from class6_7_netflix_utils import (
     drop_missing_rows,
     remove_duplicates,
     show_overview,
+    clean_text,
+    drop_missing_rows,
+    remove_duplicates,
+    remove_iqr_outliers,
+    show_overview,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,6 +55,8 @@ def main():
         logger.error(f'File not found: {path}')
         sys.exit(1)
 
+    df_original = df.copy()
+
     # TODO 5:
     # Call show_overview().
     # Log an INFO message.
@@ -61,10 +68,34 @@ def main():
     # Call drop_missing_rows().
     # Log an INFO message after each step that
     # includes the number of rows removed.
-    no_dupes = remove_duplicates(df)
-    logger.info(f'Removed {len(df) - len(no_dupes)} duplicate rows(s)')
-    cleaned_df = drop_missing_rows(no_dupes)
-    logger.info(f'Removed {len(no_dupes) - len(cleaned_df)} row(s) with missing values')
+    df = remove_duplicates(df)
+    logger.info(f'Removed {len(df_original) - len(df)} duplicate rows(s)')
+    df = drop_missing_rows(df)
+    logger.info(f'Removed {len(df) - len(df)} row(s) with missing values')
+
+        # TODO 3:
+    # Inside a try block, remove runtime_minutes outliers
+    # using remove_iqr_outliers() with a threshold of 1.5.
+    # Catch ValueError and exit with sys.exit(1).
+    # # Log an INFO message.
+    try:
+        df = remove_iqr_outliers(df, 'runtime_minutes', 1.5)
+        logger.info('outliers removed')
+    except ValueError:
+        sys.exit(1)
+
+    # TODO 4:
+    # Apply clean_text() to title, type, and country.
+    # Log an INFO message.
+    for col in ['title', 'type', 'country']:
+        df[col].apply(clean_text)
+    logger.info('texted cleaned in title, type, and country')
+
+    # TODO 5:
+    # Create a report (dictionary) containing rows_before, rows_after, rows_removed, and columns.
+    # Log an INFO message reporting: rows_before, rows_after, rows_removed, and columns.
+    report = {'rows_before': len(df_original), 'rows_after': len(df), 'rows_removed': len(df) - len(df), 'columns': df.columns}
+    logger.info(f'Report {report}')
 
 if __name__ == "__main__":
     main()
