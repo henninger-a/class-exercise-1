@@ -8,7 +8,7 @@ def require_columns(df, required_columns):
     # Check if any of the configured columns (list) are missing from df.
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
-        logger.error(f'{len(missing_columns)} column(s) not in dataframe')
+        logger.error(f'Missing Columns: {','.join(missing_columns)}')
         raise ValueError(f'{len(missing_columns)} column(s) not in dataframe')
     # Log an INFO.
     logger.info('checked if required columns are in dataframe')
