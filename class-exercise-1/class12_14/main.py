@@ -5,10 +5,14 @@ from src import MovieInput, MovieResponse, CSVInfo, DataStorage
 from pathlib import Path
 import io
 import pandas as pd
+from src import ProcessConfig
+from middleware import log_requests
+import logging
 
 app = FastAPI(title="Movie API")
 
-import logging
+# After the existing app = FastAPI(...):
+app.middleware("http")(log_requests)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -134,3 +138,16 @@ def get_dataset_shape(dataset_id: int):
         raise HTTPException( status_code=404, detail="ID not found")
     logger.info("Id found")
     return {'dataset_id': dataset_id, 'rows': result.shape[0], 'columns': result.shape[1]}
+
+@app.post("/demo/process-config")
+def demo_process_config(config: ProcessConfig):
+    df = pd.DataFrame({"title": ["Movie A", "Movie A", "Movie B", None]})
+    settings = config.model_dump()
+
+    if settings["processing"]["remove_duplicates"]:
+        df = df.drop_duplicates()
+
+    if settings["processing"]['drop_missing']:
+        df = df.dropna()
+        
+    return {"rows": len(df)}
